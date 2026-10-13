@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>会话订阅接口手册</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* 布局：与 SQL 智能助手接口手册同一套——桌面左侧目录吸顶 + 右侧正文；手机单列。接口卡片 = 方法徽章 + 路径 + 请求/响应代码块 + 字段表 */
+:root{
+  --bg:#f6f7f8; --panel:#ffffff; --fg:#1d2328; --muted:#5b6670; --line:#dde2e6;
+  --accent:#0f6b73; --accent-soft:#e3f1f2; --code-bg:#f0f2f4; --code-fg:#23303a;
+  --get:#1f7a4d; --post:#2957a4; --put:#a4661b; --warn-bg:#fff6e5; --warn-fg:#7a4b00;
+  --sans:"IBM Plex Sans","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171b; --panel:#182026; --fg:#e4e9ec; --muted:#9aa7b0; --line:#2a353d;
+  --accent:#5fc3cb; --accent-soft:#16333a; --code-bg:#0f1418; --code-fg:#d6e0e6;
+  --get:#5bc48b; --post:#7ea6ea; --put:#e0a55a; --warn-bg:#2f2614; --warn-fg:#f0c77a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171b; --panel:#182026; --fg:#e4e9ec; --muted:#9aa7b0; --line:#2a353d;
+  --accent:#5fc3cb; --accent-soft:#16333a; --code-bg:#0f1418; --code-fg:#d6e0e6;
+  --get:#5bc48b; --post:#7ea6ea; --put:#e0a55a; --warn-bg:#2f2614; --warn-fg:#f0c77a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-size:13.5px}
+nav.toc .brand{font-weight:600;color:var(--accent);letter-spacing:.04em;font-size:12px;text-transform:uppercase;margin-bottom:12px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:5px 10px;border-left:2px solid var(--line)}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--fg);border-left-color:var(--accent);outline:none}
+nav.toc .sub{padding-left:22px;font-family:var(--mono);font-size:12.5px;word-break:break-all}
+main{min-width:0}
+header.top h1{font-size:30px;line-height:1.25;margin:0 0 8px;text-wrap:balance;font-weight:600}
+header.top p.lead{color:var(--muted);margin:0 0 18px;max-width:66ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chip{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted);background:var(--panel)}
+.chip b{color:var(--fg);font-weight:500}
+.status{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-fg);border-radius:8px;padding:12px 14px;margin:18px 0 8px;font-size:14px}
+h2{font-size:21px;margin:48px 0 12px;padding-top:8px;text-wrap:balance;font-weight:600}
+h3{font-size:16px;margin:26px 0 8px;font-weight:600}
+p,li{max-width:72ch}
+code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);color:var(--code-fg);padding:1px 5px;border-radius:4px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:12px 0;display:grid;gap:10px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;max-width:none}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:13px;display:grid;place-items:center;margin-top:2px;font-variant-numeric:tabular-nums}
+.ep{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:16px 0}
+.ep-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:6px}
+.m{font-family:var(--mono);font-size:12px;font-weight:500;padding:2px 8px;border-radius:5px;color:#fff;letter-spacing:.03em}
+.m.get{background:var(--get)} .m.post{background:var(--post)} .m.put{background:var(--put)}
+:root[data-theme="dark"] .m{color:#0d1216}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m{color:#0d1216}}
+.path{font-family:var(--mono);font-size:15px;word-break:break-all}
+.ep-desc{color:var(--muted);margin:0 0 6px}
+.code{position:relative;margin:10px 0}
+.code .lbl{font-size:12px;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.6}
+.copy{position:absolute;top:24px;right:8px;font:12px var(--sans);border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:6px;padding:2px 9px;cursor:pointer}
+.copy:hover,.copy:focus-visible{color:var(--fg);border-color:var(--accent);outline:none}
+.tbl{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--muted);font-size:12.5px;letter-spacing:.03em}
+td code{white-space:nowrap}
+.note{border-left:3px solid var(--accent);padding:4px 0 4px 12px;margin:12px 0;color:var(--fg)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0;font-size:14px}
+.flow span{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
+.flow i{font-style:normal;color:var(--muted)}
+footer{margin-top:56px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr);gap:8px}nav.toc{display:none}header.top h1{font-size:25px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<nav class="toc" aria-label="目录">
+  <div class="brand">brain-query · 会话订阅</div>
+  <a href="#steps">对接步骤</a>
+  <a href="#common">通用约定</a>
+  <a href="#summarize">生成订阅说明</a>
+  <a class="sub" href="#summarize">POST /subscription/summary</a>
+  <a href="#markdown">订阅说明的结构</a>
+  <a href="#warnings">提醒 warnings</a>
+  <a href="#replay">定期执行</a>
+  <a class="sub" href="#replay">POST /ask/stream</a>
+  <a href="#errors">错误</a>
+</nav>
+
+<main>
+<header class="top">
+  <h1>会话订阅接口手册</h1>
+  <p class="lead">用户在问数会话里问了几轮、满意后点「订阅」：后端用模型配置里的结果模型，把整个会话整理成一份订阅说明（Markdown）。订阅中心保存它，每次到点把它当作问题交给智能问数重新取数。</p>
+  <div class="meta">
+    <span class="chip">接口 <b>POST /subscription/summary</b></span>
+    <span class="chip">订阅单位 <b>整个会话</b></span>
+    <span class="chip">返回 <b>同步 JSON</b></span>
+    <span class="chip">更新 <b>2026-10-13</b></span>
+  </div>
+  <div class="status" role="note"><span aria-hidden="true">●</span><span><b>后端状态：</b>开发完成，尚未部署预发。上预发后与智能问数 <code>/ask/stream</code> 同一服务地址，可联调时另行通知。</span></div>
+</header>
+
+<section id="steps">
+  <h2>对接步骤</h2>
+  <div class="flow" aria-label="流程"><span>多轮问到满意</span><i>→</i><span>点「订阅」生成说明</span><i>→</i><span>用户确认并选频率</span><i>→</i><span>到点回放问数</span></div>
+  <ol class="steps">
+    <li><span>用户点「订阅」：调 <code>POST /subscription/summary</code>，请求体带这次问数用的会话号 <code>session_id</code>。不论按钮在哪条回答下，订阅的都是整个会话。</span></li>
+    <li><span>确认页：用返回的 <code>title</code> 作订阅名，渲染 <code>markdown</code> 给用户看；<code>warnings</code> 非空时逐条提示，不拦截。用户选好执行频率后，保存 <code>title</code> 和 <code>markdown</code>。</span></li>
+    <li><span>到点执行：调问数流式接口，<code>query</code> 填保存的 <code>markdown</code>，<code>request_channel</code> 填 <code>time_task</code>，每次用新的 <code>session_id</code>（见<a href="#replay">定期执行</a>）。</span></li>
+  </ol>
+</section>
+
+<section id="common">
+  <h2>通用约定</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>项</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>身份</td><td><code>user_id</code> 必填，与调问数接口时传的是同一个值。只能订阅自己发起的会话。</td></tr>
+      <tr><td>项目</td><td><code>project</code>（项目名）或 <code>project_id</code>，传法与问数接口相同，数字或字符串都行。只整理该项目下的轮次。</td></tr>
+      <tr><td>整理范围</td><td>整个会话。用户中途换话题算一个新任务：取过数的任务都纳入订阅，各自以最后的说法为准，被否定的口径写进「不要做」；问规则、闲聊这类没取数的问答不纳入。会话超过 30 轮时只看最近 30 轮。</td></tr>
+      <tr><td>模型</td><td>模型配置页「结果与分析模型」的主模型，失败自动转兜底模型。</td></tr>
+      <tr><td>数据</td><td>只读会话记录，不查数仓，不需要查数凭据。说明里不带任何历史结果数值，每次执行都重新取数。</td></tr>
+      <tr><td>鉴权</td><td>与问数接口相同：服务端开启口令时带请求头 <code>X-Api-Token</code>。</td></tr>
+      <tr><td>耗时</td><td>一次模型调用，通常 10–60 秒。主模型不可用、转兜底模型时会更长，前端请求超时建议设为 6 分钟；经网关转发时注意网关的读超时。</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="summarize">
+  <h2>生成订阅说明</h2>
+  <div class="ep">
+    <div class="ep-head"><span class="m post">POST</span><span class="path">/subscription/summary</span></div>
+    <p class="ep-desc">同一会话可以多次调用，每次重新生成。</p>
+    <div class="code"><div class="lbl">请求</div><button class="copy" type="button">复制</button><pre>{
+  "session_id": "1001",
+  "project_id": 31,
+  "user_id": "&lt;user_id&gt;"
+}</pre></div>
+    <div class="tbl"><table>
+      <thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>session_id</code></td><td>是</td><td>问数时用的会话号，字符串或数字，最长 128 字符</td></tr>
+        <tr><td><code>user_id</code></td><td>是</td><td>会话发起人</td></tr>
+        <tr><td><code>project</code> / <code>project_id</code></td><td>二选一</td><td>同问数接口</td></tr>
+      </tbody>
+    </table></div>
+    <div class="code"><div class="lbl">响应</div><button class="copy" type="button">复制</button><pre>{
+  "session_id": "1001",
+  "project": "猎鱼达人3D",
+  "title": "渠道首充与次留",
+  "markdown": "# 渠道首充与次留\n\n每次执行时，按注册渠道看近 7 日首充率和新增用户次留……\n\n## 一、各注册渠道首充率\n…\n\n## 参考 SQL\n…",
+  "turns": [0, 1, 2, 3],
+  "warnings": [],
+  "elapsed_ms": 18342
+}</pre></div>
+    <div class="tbl"><table>
+      <thead><tr><th>字段</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>订阅名，15 字左右，可直接作订阅列表的标题；与 <code>markdown</code> 首行一级标题相同</td></tr>
+        <tr><td><code>markdown</code></td><td>订阅说明全文，结构见<a href="#markdown">下一节</a>。保存它，到点原样当 <code>query</code> 用</td></tr>
+        <tr><td><code>turns</code></td><td>整理进去的轮次序号（0 起）；没取数的问答不在其中</td></tr>
+        <tr><td><code>warnings</code></td><td>确认前要让用户知道的事，字符串数组，可能为空，见<a href="#warnings">提醒</a></td></tr>
+        <tr><td><code>elapsed_ms</code></td><td>生成耗时（毫秒）</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="markdown">
+  <h2>订阅说明的结构</h2>
+  <p>说明写给一个看不到原会话的问数助手，所以每一项都写全称，时间写成相对执行日的规则。</p>
+  <div class="tbl"><table>
+    <thead><tr><th>段落</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code># 标题</code></td><td>同 <code>title</code></td></tr>
+      <tr><td>首段</td><td>一句话订阅问题：离开原会话也能直接问的完整问句</td></tr>
+      <tr><td><code>## 时间规则</code></td><td>每次执行取哪段时间（如"执行日前 7 个完整自然日"）、统计粒度。原问题是固定区间（如"9 月"）时改为滚动规则并注明</td></tr>
+      <tr><td><code>## 口径与筛选</code></td><td>指标及口径要点、人群与筛选、维度</td></tr>
+      <tr><td><code>## 交付内容</code></td><td>要哪些表、哪些图，结论关注什么</td></tr>
+      <tr><td><code>## 一、任务名</code>…</td><td>会话里有多个取过数的任务时，每个任务一节，节内用 <code>### 时间规则</code> <code>### 口径与筛选</code> <code>### 交付内容</code>，代替上面三段</td></tr>
+      <tr><td><code>## 不要做</code></td><td>用户否定过、改口前的口径</td></tr>
+      <tr><td><code>## 待确认</code></td><td>会话里没确认的口径；没有写"无"</td></tr>
+      <tr><td><code>## 参考 SQL</code></td><td>可能没有。生成时实际交付、且与最终口径一致的语句，由系统原样附上；日期是当时的窗口，执行时按时间规则替换</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">确认页可以让用户改正文。「参考 SQL」段建议保留：删掉后每次由问数重新写语句，口径可能和用户满意的那次不一样。</p>
+  <div class="code"><div class="lbl">markdown 示例（单个任务）</div><button class="copy" type="button">复制</button><pre># 各注册渠道近7日首充率
+
+每次执行时，统计执行日前 7 个完整自然日内各注册渠道活跃用户的首充率，按首充率从高到低排列。
+
+## 时间规则
+- 每次执行取：执行日前 7 个完整自然日（不含执行当天）
+- 统计粒度：7 天整段汇总
+
+## 口径与筛选
+- 指标：首充率 = 窗口内首充用户数 / 窗口内活跃用户数，首充以 is_first_pay=1 判定
+- 人群与筛选：窗口内的活跃用户（当日有登录）
+- 维度：注册渠道（dim_user.reg_channel）
+
+## 交付内容
+- 表：各注册渠道首充率，按首充率降序
+- 图：各注册渠道首充率柱状图
+- 结论：首充率排名，指出明显偏低的渠道
+
+## 不要做
+- 不按登录渠道分组
+- 不用"当日有付费"作付费口径，统一按首充
+
+## 待确认
+- 无
+
+## 参考 SQL
+生成订阅时实际交付的语句，口径以此为准；语句里的日期是当时的窗口，每次执行按「时间规则」换成当次窗口。
+
+```sql
+-- S3 各注册渠道首充率（生成时窗口 2026-10-06 ~ 2026-10-13）
+SELECT r.reg_channel, COUNT(DISTINCT CASE WHEN p.is_first_pay=1 THEN p.user_id END)/COUNT(DISTINCT p.user_id) AS first_pay_rate FROM dw.dws_user_pay_d p JOIN dw.dim_user r ON p.user_id=r.user_id WHERE p.log_date &gt;= '2026-10-06' AND p.log_date &lt; '2026-10-13' GROUP BY r.reg_channel ORDER BY first_pay_rate DESC
+```</pre></div>
+</section>
+
+<section id="warnings">
+  <h2>提醒 warnings</h2>
+  <p>由程序按会话记录判定，不经模型。文字可直接展示，不需要按内容分支处理；用户看过后仍可订阅。</p>
+  <div class="tbl"><table>
+    <thead><tr><th>可能出现的提醒</th><th>意味着</th></tr></thead>
+    <tbody>
+      <tr><td>整个会话没有取过数（只有文字回答）……</td><td>会话里都是问规则、解释类问答，订阅后每次也只有文字</td></tr>
+      <tr><td>「某任务」没有交付方案记录，参考 SQL 不含这部分……</td><td>这部分每次由问数按说明重新写语句</td></tr>
+      <tr><td>「某任务」交付方案不完整：……</td><td>查询语句记录不全，参考 SQL 可能缺</td></tr>
+      <tr><td>交付语句 S… 过长或被截断，未附进参考 SQL</td><td>个别语句没附</td></tr>
+      <tr><td>要求「……」：未完成 / 换了口径，未经用户确认 / 降维、只完成一部分 / 待用户选口径</td><td>没完全按用户原话的口径做，这类口径会写进说明的「待确认」</td></tr>
+      <tr><td>「某任务」仍有 N 条未解决的口径缺口……</td><td>有数据缺口没解决，订阅结果可能同样缺</td></tr>
+      <tr><td>用户对第 N 轮「……」点了踩</td><td>某个任务的最后一条回答用户不满意，建议提示确认</td></tr>
+      <tr><td>会话较长，只整理了最近 30 轮</td><td>更早的轮次没进订阅</td></tr>
+      <tr><td>结果模型没有点名参考语句……</td><td>参考 SQL 只附了各任务最近一次执行的语句</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="replay">
+  <h2>定期执行</h2>
+  <div class="ep">
+    <div class="ep-head"><span class="m post">POST</span><span class="path">/ask/stream</span></div>
+    <p class="ep-desc">就是现有的智能问数流式接口（含 <code>/ask/stream/cc</code> 等显式引擎路径），事件协议不变。只有三处与普通提问不同：</p>
+    <div class="tbl"><table>
+      <thead><tr><th>字段</th><th>填什么</th></tr></thead>
+      <tbody>
+        <tr><td><code>query</code></td><td>保存的订阅说明 <code>markdown</code>，原样传</td></tr>
+        <tr><td><code>request_channel</code></td><td><code>time_task</code>（订阅中心定时推送，结论按飞书卡片 md 出，与现有订阅推送一致）</td></tr>
+        <tr><td><code>session_id</code></td><td>每次执行新生成一个。沿用旧号会把上一次的回答当追问上下文，时间窗可能跟着沿用</td></tr>
+      </tbody>
+    </table></div>
+    <div class="code"><div class="lbl">请求</div><button class="copy" type="button">复制</button><pre>{
+  "query": "# 各注册渠道近7日首充率\n\n每次执行时……",
+  "request_channel": "time_task",
+  "session_id": "&lt;每次新生成&gt;",
+  "project_id": "31",
+  "user_id": "&lt;user_id&gt;",
+  "account_hash_id": "&lt;account_hash_id&gt;",
+  "authorization": "&lt;authorization&gt;"
+}</pre></div>
+    <p class="note">查数凭据（<code>account_hash_id</code>、<code>authorization</code>）与普通提问一样必须带：订阅说明不含凭据，执行时按订阅人身份查数。</p>
+  </div>
+</section>
+
+<section id="errors">
+  <h2>错误</h2>
+  <p>生成订阅说明的错误走 HTTP 状态码，响应体 <code>{"detail": "…"}</code>，文字可直接展示（422 时 <code>detail</code> 是校验明细数组）。</p>
+  <div class="tbl"><table>
+    <thead><tr><th>状态码</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td>401</td><td>口令错误</td></tr>
+      <tr><td>403</td><td>没带 <code>user_id</code>，或会话不属于该用户</td></tr>
+      <tr><td>409</td><td>本会话在该项目下还没有任何问答（也可能是 <code>project</code> 传错了）</td></tr>
+      <tr><td>422</td><td>请求体不合法（如缺 <code>session_id</code> 或为空、超长）</td></tr>
+      <tr><td>502</td><td>结果模型生成失败（主模型和兜底都没成），稍后重试</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>brain-query · 会话订阅接口 · 2026-10-13</footer>
+</main>
+</div>
+
+<script>
+document.querySelectorAll('.code').forEach(function (box) {
+  var btn = box.querySelector('.copy'), pre = box.querySelector('pre');
+  if (!btn || !pre) return;
+  btn.addEventListener('click', function () {
+    var text = pre.innerText, done = function () { btn.textContent = '已复制'; setTimeout(function () { btn.textContent = '复制'; }, 1500); };
+    var fallback = function () { var r = document.createRange(); r.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = '已选中，按 Ctrl+C'; };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+});
+</script>
+</body>
+</html>
