@@ -83,8 +83,6 @@ footer{margin-top:56px;color:var(--muted);font-size:13px;border-top:1px solid va
   <a class="sub" href="#summarize">POST /subscription/summary</a>
   <a href="#markdown">订阅说明的结构</a>
   <a href="#warnings">提醒 warnings</a>
-  <a href="#replay">定期执行</a>
-  <a class="sub" href="#replay">POST /ask/stream</a>
   <a href="#errors">错误</a>
 </nav>
 
@@ -98,7 +96,7 @@ footer{margin-top:56px;color:var(--muted);font-size:13px;border-top:1px solid va
     <span class="chip">返回 <b>同步 JSON</b></span>
     <span class="chip">更新 <b>2026-10-13</b></span>
   </div>
-  <div class="status" role="note"><span aria-hidden="true">●</span><span><b>后端状态：</b>开发完成，尚未部署预发。上预发后与智能问数 <code>/ask/stream</code> 同一服务地址，可联调时另行通知。</span></div>
+  <div class="status" role="note"><span aria-hidden="true">●</span><span><b>后端状态：</b>代码已合入 dev，尚未上预发。上预发后与智能问数 <code>/ask/stream</code> 同一服务地址，可联调时另行通知。</span></div>
 </header>
 
 <section id="steps">
@@ -107,7 +105,7 @@ footer{margin-top:56px;color:var(--muted);font-size:13px;border-top:1px solid va
   <ol class="steps">
     <li><span>用户点「订阅」：调 <code>POST /subscription/summary</code>，请求体带这次问数用的会话号 <code>session_id</code>。不论按钮在哪条回答下，订阅的都是整个会话。</span></li>
     <li><span>确认页：用返回的 <code>title</code> 作订阅名，渲染 <code>markdown</code> 给用户看；<code>warnings</code> 非空时逐条提示，不拦截。用户选好执行频率后，保存 <code>title</code> 和 <code>markdown</code>。</span></li>
-    <li><span>到点执行：调问数流式接口，<code>query</code> 填保存的 <code>markdown</code>，<code>request_channel</code> 填 <code>time_task</code>，每次用新的 <code>session_id</code>（见<a href="#replay">定期执行</a>）。</span></li>
+    <li><span>到点执行：把保存的 <code>markdown</code> 当问题提问，用法同现有订阅推送。</span></li>
   </ol>
 </section>
 
@@ -236,32 +234,6 @@ SELECT r.reg_channel, COUNT(DISTINCT CASE WHEN p.is_first_pay=1 THEN p.user_id E
       <tr><td>结果模型没有点名参考语句……</td><td>参考 SQL 只附了各任务最近一次执行的语句</td></tr>
     </tbody>
   </table></div>
-</section>
-
-<section id="replay">
-  <h2>定期执行</h2>
-  <div class="ep">
-    <div class="ep-head"><span class="m post">POST</span><span class="path">/ask/stream</span></div>
-    <p class="ep-desc">就是现有的智能问数流式接口（含 <code>/ask/stream/cc</code> 等显式引擎路径），事件协议不变。只有三处与普通提问不同：</p>
-    <div class="tbl"><table>
-      <thead><tr><th>字段</th><th>填什么</th></tr></thead>
-      <tbody>
-        <tr><td><code>query</code></td><td>保存的订阅说明 <code>markdown</code>，原样传</td></tr>
-        <tr><td><code>request_channel</code></td><td><code>time_task</code>（订阅中心定时推送，结论按飞书卡片 md 出，与现有订阅推送一致）</td></tr>
-        <tr><td><code>session_id</code></td><td>每次执行新生成一个。沿用旧号会把上一次的回答当追问上下文，时间窗可能跟着沿用</td></tr>
-      </tbody>
-    </table></div>
-    <div class="code"><div class="lbl">请求</div><button class="copy" type="button">复制</button><pre>{
-  "query": "# 各注册渠道近7日首充率\n\n每次执行时……",
-  "request_channel": "time_task",
-  "session_id": "&lt;每次新生成&gt;",
-  "project_id": "31",
-  "user_id": "&lt;user_id&gt;",
-  "account_hash_id": "&lt;account_hash_id&gt;",
-  "authorization": "&lt;authorization&gt;"
-}</pre></div>
-    <p class="note">查数凭据（<code>account_hash_id</code>、<code>authorization</code>）与普通提问一样必须带：订阅说明不含凭据，执行时按订阅人身份查数。</p>
-  </div>
 </section>
 
 <section id="errors">
